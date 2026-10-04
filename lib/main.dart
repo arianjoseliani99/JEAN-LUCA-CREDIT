@@ -1242,10 +1242,6 @@ class DashboardScreen extends StatelessWidget {
                   tooltip: 'Cotizador rápido',
                   icon: const Icon(Icons.calculate_outlined, size: 21),
                 ),
-                CircleAvatar(
-                  backgroundColor: const Color(0xFF0B4A45),
-                  child: Text('${loans.length}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                ),
               ],
             ),
             const SizedBox(height: 18),

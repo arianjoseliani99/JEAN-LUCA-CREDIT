@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grinch/main.dart';
@@ -15,6 +16,7 @@ void main() {
     expect(find.text('Cartera y recuperación'), findsOneWidget);
     expect(find.byTooltip('Cotizador rápido'), findsOneWidget);
     expect(find.byTooltip('Nuevo préstamo'), findsOneWidget);
+    expect(find.byType(CircleAvatar), findsNothing);
     expect(find.text('Cotizador rápido'), findsNothing);
     expect(find.text('Nuevo préstamo'), findsNothing);
   });
