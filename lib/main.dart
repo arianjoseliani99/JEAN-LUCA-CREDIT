@@ -1153,13 +1153,11 @@ class _HomePageState extends State<HomePage> {
     final screens = [
       DashboardScreen(
         loans: _loans,
-        onAddLoan: _showAddLoanSheet,
         onQuickQuote: _showQuickQuoteSheet,
         pendingQuotes: _quoteDrafts.length,
       ),
       LoansScreen(
         loans: _loans,
-        onAddLoan: _showAddLoanSheet,
         onQuickQuote: _showQuickQuoteSheet,
         onEdit: _showEditLoanSheet,
         onLoanTap: _openLoanSchedule,
@@ -1178,10 +1176,10 @@ class _HomePageState extends State<HomePage> {
         index: _selectedIndex,
         children: screens,
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _showAddLoanSheet,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Nuevo préstamo'),
+        tooltip: 'Nuevo préstamo',
+        child: const Icon(Icons.add_rounded),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -1200,13 +1198,11 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({
     super.key,
     required this.loans,
-    required this.onAddLoan,
     required this.onQuickQuote,
     required this.pendingQuotes,
   });
 
   final List<LoanRecord> loans;
-  final VoidCallback onAddLoan;
   final VoidCallback onQuickQuote;
   final int pendingQuotes;
 
@@ -1241,29 +1237,14 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                IconButton(
+                  onPressed: onQuickQuote,
+                  tooltip: 'Cotizador rápido',
+                  icon: const Icon(Icons.calculate_outlined, size: 21),
+                ),
                 CircleAvatar(
                   backgroundColor: const Color(0xFF0B4A45),
                   child: Text('${loans.length}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onQuickQuote,
-                    icon: const Icon(Icons.calculate_rounded),
-                    label: const Text('Cotizador rápido'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: onAddLoan,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Nuevo préstamo'),
-                  ),
                 ),
               ],
             ),
@@ -1413,14 +1394,12 @@ class LoansScreen extends StatelessWidget {
   const LoansScreen({
     super.key,
     required this.loans,
-    required this.onAddLoan,
     required this.onQuickQuote,
     required this.onEdit,
     required this.onLoanTap,
   });
 
   final List<LoanRecord> loans;
-  final VoidCallback onAddLoan;
   final VoidCallback onQuickQuote;
   final void Function(LoanRecord loan) onEdit;
   final void Function(LoanRecord loan) onLoanTap;
@@ -1439,31 +1418,22 @@ class LoansScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Jean Lucas Credit',
-              style: TextStyle(
-                fontSize: 27,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF101827),
-              ),
-            ),
-            const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onQuickQuote,
-                    icon: const Icon(Icons.calculate_rounded),
-                    label: const Text('Cotizador rápido'),
+                const Expanded(
+                  child: Text(
+                    'Jean Lucas Credit',
+                    style: TextStyle(
+                      fontSize: 27,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF101827),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: onAddLoan,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Nuevo préstamo'),
-                  ),
+                IconButton(
+                  onPressed: onQuickQuote,
+                  tooltip: 'Cotizador rápido',
+                  icon: const Icon(Icons.calculate_outlined, size: 21),
                 ),
               ],
             ),

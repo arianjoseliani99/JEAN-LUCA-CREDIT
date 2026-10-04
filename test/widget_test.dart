@@ -13,6 +13,10 @@ void main() {
     expect(find.text('Préstamos activos'), findsOneWidget);
     expect(find.text('Próximos cobros'), findsOneWidget);
     expect(find.text('Cartera y recuperación'), findsOneWidget);
+    expect(find.byTooltip('Cotizador rápido'), findsOneWidget);
+    expect(find.byTooltip('Nuevo préstamo'), findsOneWidget);
+    expect(find.text('Cotizador rápido'), findsNothing);
+    expect(find.text('Nuevo préstamo'), findsNothing);
   });
 
   testWidgets('loans tab shows premium brand and quick actions', (tester) async {
@@ -23,8 +27,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Jean Lucas Credit'), findsOneWidget);
-    expect(find.text('Cotizador rápido'), findsOneWidget);
-    expect(find.text('Nuevo préstamo'), findsWidgets);
+    expect(find.byTooltip('Cotizador rápido'), findsOneWidget);
+    expect(find.byTooltip('Nuevo préstamo'), findsOneWidget);
+    expect(find.text('Cotizador rápido'), findsNothing);
+    expect(find.text('Nuevo préstamo'), findsNothing);
   });
 
   testWidgets('analysis tab shows portfolio profitability and quote sections', (tester) async {
