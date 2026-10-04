@@ -43,6 +43,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.14.4
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -60,6 +62,26 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/jean_lucas_credit.png
+  adaptive_icon_background: "#F5F2EE"
+  adaptive_icon_foreground: assets/branding/jean_lucas_credit_foreground.png
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: assets/branding/jean_lucas_credit.png
+    background_color: "#F5F2EE"
+    theme_color: "#0B4A45"
+  macos:
+    generate: true
+    image_path: assets/branding/jean_lucas_credit.png
+  windows:
+    generate: true
+    image_path: assets/branding/jean_lucas_credit.png
+    icon_size: 256
 
   # To add assets to your application, add an assets section, like this:
   # assets:
