@@ -1,11 +1,173 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:grinch/local_pin_gate.dart';
 import 'package:grinch/main.dart';
 
 void main() {
-  testWidgets('jean luca credit app loads dashboard', (tester) async {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  testWidgets('app starts behind the local PIN gate', (tester) async {
     await tester.pumpWidget(const GrinchApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Crea tu PIN'), findsOneWidget);
+    expect(find.text('Saldo por recuperar'), findsNothing);
+  });
+
+  testWidgets('appearance changes apply immediately and persist', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'jean_lucas_local_pin': '1234',
+    });
+    await tester.pumpWidget(const GrinchApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '1234');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Configuración').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+    expect(
+      Theme.of(tester.element(find.text('Modo noche'))).brightness,
+      Brightness.dark,
+    );
+    expect(
+      (await SharedPreferences.getInstance()).getBool('jean_lucas_dark_mode'),
+      isTrue,
+    );
+
+    await tester.tap(find.text('Apariencia').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('appearance-color-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('appearance-text-scale-2')),
+    );
+    await tester.pumpAndSettle();
+
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getInt('jean_lucas_theme_color'), 2);
+    expect(preferences.getInt('jean_lucas_text_scale'), 2);
+    expect(
+      MediaQuery.textScalerOf(
+        tester.element(
+          find.byKey(const ValueKey('appearance-text-scale-2')),
+        ),
+      ).scale(10),
+      closeTo(11.2, 0.01),
+    );
+    expect(
+      Theme.of(
+        tester.element(find.byKey(const ValueKey('appearance-color-2'))),
+      ).colorScheme.primary,
+      ColorScheme.fromSeed(
+        seedColor: const Color(0xFF7755C9),
+        brightness: Brightness.dark,
+      ).primary,
+    );
+  });
+
+  testWidgets(
+    'first launch creates a four-digit PIN before opening the dashboard',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: LocalPinGate(child: Text('Contenido local protegido')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Crea tu PIN'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '1234');
+      await tester.pumpAndSettle();
+      expect(find.text('Confirma tu PIN'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '1234');
+      await tester.pumpAndSettle();
+
+      expect(
+        (await SharedPreferences.getInstance()).getString(
+          'jean_lucas_local_pin',
+        ),
+        '1234',
+      );
+      expect(find.text('Contenido local protegido'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: LocalPinGate(child: Text('Contenido local protegido')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Ingresa tu PIN'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '1234');
+      await tester.pumpAndSettle();
+      expect(find.text('Contenido local protegido'), findsOneWidget);
+    },
+  );
+
+  testWidgets('saved PIN is required to open the local app', (tester) async {
+    SharedPreferences.setMockInitialValues({'jean_lucas_local_pin': '5678'});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: LocalPinGate(child: Text('Contenido local protegido')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '0000');
+    await tester.pumpAndSettle();
+    expect(find.text('PIN incorrecto. Inténtalo de nuevo.'), findsOneWidget);
+    expect(find.text('Contenido local protegido'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), '5678');
+    await tester.pumpAndSettle();
+    expect(find.text('Contenido local protegido'), findsOneWidget);
+  });
+
+  testWidgets('app asks for PIN again after leaving and returning', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'jean_lucas_local_pin': '5678'});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: LocalPinGate(child: Text('Contenido local protegido')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '5678');
+    await tester.pumpAndSettle();
+    expect(find.text('Contenido local protegido'), findsOneWidget);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pumpAndSettle();
+    expect(find.text('Ingresa tu PIN'), findsOneWidget);
+    expect(find.text('Contenido local protegido'), findsNothing);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('Ingresa tu PIN'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '5678');
+    await tester.pumpAndSettle();
+    expect(find.text('Contenido local protegido'), findsOneWidget);
+  });
+
+  testWidgets('jean luca credit app loads dashboard', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: HomePage()));
+    await tester.pumpAndSettle();
 
     expect(find.text('JEAN LUCAS CREDIT'), findsOneWidget);
     expect(find.text('Saldo por recuperar'), findsOneWidget);
@@ -21,8 +183,45 @@ void main() {
     expect(find.text('Nuevo préstamo'), findsNothing);
   });
 
-  testWidgets('loans tab shows premium brand and quick actions', (tester) async {
-    await tester.pumpWidget(const GrinchApp());
+  testWidgets('new loan is persisted and restored after the app is recreated', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomePage()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Nuevo préstamo'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'Cliente guardado',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), '900');
+    await tester.enterText(find.byType(TextFormField).at(3), '6');
+    await tester.ensureVisible(find.text('Guardar préstamo'));
+    await tester.tap(find.text('Guardar préstamo'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getStringList('jean_lucas_loans')!.join(),
+      contains('Cliente guardado'),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const MaterialApp(home: HomePage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Préstamos').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cliente guardado'), findsOneWidget);
+  });
+
+  testWidgets('loans tab shows premium brand and quick actions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomePage()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Préstamos').last);
@@ -35,8 +234,10 @@ void main() {
     expect(find.text('Nuevo préstamo'), findsNothing);
   });
 
-  testWidgets('analysis tab shows portfolio profitability and quote sections', (tester) async {
-    await tester.pumpWidget(const GrinchApp());
+  testWidgets('analysis tab shows portfolio profitability and quote sections', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomePage()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Análisis').last);
